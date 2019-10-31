@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Download Maps</string>
+    <string name="device_memory">Device memory</string>
+    <string name="gb">Gb</string>
+    <string name="map">Map</string>
+    <string name="download">Download</string>
 </resources>
