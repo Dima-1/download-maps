@@ -5,14 +5,24 @@ package com.example.downloadmaps;
  * on 01.11.2019.
  */
 public class Entry {
-    String name;
-    String URL;
-    boolean loaded;
-    Entry region;
+	private String name;
+	private String fileName;
+	private boolean loaded;
+	private int downloadProgress;
+	private Entry region;
 
-    public Entry(String name, String URL, Entry region) {
+	int getDownloadProgress() {
+		return downloadProgress;
+	}
+
+	void setDownloadProgress(int downloadProgress) {
+		this.downloadProgress = downloadProgress;
+	}
+
+
+	Entry(String name, String fileName, Entry region) {
         this.name = name;
-        this.URL = URL;
+		this.fileName = fileName;
         this.region = region;
     }
 
@@ -24,7 +34,7 @@ public class Entry {
         this.loaded = loaded;
     }
 
-    public String getName() {
+	String getName() {
         return name;
     }
 
@@ -32,12 +42,12 @@ public class Entry {
         this.name = name;
     }
 
-    public String getURL() {
-        return URL;
+	String getFileName() {
+		return fileName;
     }
 
-    public void setURL(String URL) {
-        this.URL = URL;
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
     }
 
     public Entry getRegion() {

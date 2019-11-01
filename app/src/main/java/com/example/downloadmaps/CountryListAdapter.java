@@ -1,14 +1,16 @@
 package com.example.downloadmaps;
 
-import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -17,53 +19,82 @@ import java.util.ArrayList;
  * on 31.10.2019.
  */
 class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemViewHolder> {
-    private Context context;
-    private ArrayList<Entry> countryList;
+	private IView view;
+	private ArrayList<Entry> countryList;
 
-    public static class ItemViewHolder extends RecyclerView.ViewHolder {
-        // each data item is just a string in this case
-        private ImageView map;
-        private TextView countryName;
-        private ImageView download;
+	static class ItemViewHolder extends RecyclerView.ViewHolder {
+		private ImageView map;
+		private TextView countryName;
+		private ProgressBar progressBar;
+		private ImageView download;
 
-        public ItemViewHolder(View itemView) {
-            super(itemView);
-            map = itemView.findViewById(R.id.ivMap);
-            countryName = itemView.findViewById(R.id.tvCountryName);
-            download = itemView.findViewById(R.id.ivDownload);
-        }
-    }
+		ItemViewHolder(View itemView) {
+			super(itemView);
+			map = itemView.findViewById(R.id.ivMap);
+			countryName = itemView.findViewById(R.id.tvCountryName);
+			download = itemView.findViewById(R.id.ivDownload);
+			progressBar = itemView.findViewById(R.id.progressBarMap);
+		}
+	}
 
-    public CountryListAdapter(Context context, ArrayList<Entry> myDataset) {
+	CountryListAdapter(IView view, ArrayList<Entry> countryList) {
 
-        countryList = myDataset;
-        this.context = context;
-    }
+		this.countryList = countryList;
+		this.view = view;
+	}
 
-    @NonNull
-    @Override
-    public CountryListAdapter.ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int position) {
-        View itemView = LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.item_main, parent, false);
-        return new ItemViewHolder(itemView);
-    }
+	@NonNull
+	@Override
+	public CountryListAdapter.ItemViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int position) {
+		View itemView = LayoutInflater.from(parent.getContext())
+				.inflate(R.layout.item_main, parent, false);
+		return new ItemViewHolder(itemView);
+	}
 
-    @Override
-    public void onBindViewHolder(@NonNull final CountryListAdapter.ItemViewHolder viewHolder, int position) {
-        Entry entry = countryList.get(position);
-        viewHolder.countryName.setText(entry.getName());
-        viewHolder.download.setOnClickListener(
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Toast.makeText(context, viewHolder.countryName.getText(), Toast.LENGTH_SHORT).show();
-                    }
-                }
-        );
-    }
+	@Override
+	public void onBindViewHolder(@NonNull final CountryListAdapter.ItemViewHolder viewHolder, int position) {
+		final Entry entry = countryList.get(position);
+		viewHolder.countryName.setText(entry.getName());
+		Log.d("-------", "onBindViewHolder: ");
+		if (0 < entry.getDownloadProgress() && entry.getDownloadProgress() < 100) {
+			viewHolder.progressBar.setVisibility(View.VISIBLE);
+			viewHolder.progressBar.setProgress(entry.getDownloadProgress());
+		} else {
+			viewHolder.progressBar.setVisibility(View.GONE);
+		}
+		if (entry.getDownloadProgress() == 100) {
+			viewHolder.map.getContext();
+			Drawable normalDrawable = viewHolder.map.getDrawable();
+			Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
+			DrawableCompat.setTint(wrapDrawable,
+					viewHolder.map.getResources().getColor(R.color.colorDownloadedMapIcon));
+			viewHolder.map.setImageDrawable(wrapDrawable);
+		} else {
+			Drawable normalDrawable = viewHolder.map.getDrawable();
+			Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
+			DrawableCompat.setTint(wrapDrawable,
+					viewHolder.map.getResources().getColor(R.color.colorIcon));
+			viewHolder.map.setImageDrawable(wrapDrawable);
+		}
 
-    @Override
-    public int getItemCount() {
-        return countryList.size();
-    }
+		viewHolder.download.setOnClickListener(
+				new View.OnClickListener() {
+					@Override
+					public void onClick(View v) {
+						view.downloadMap(entry);
+					}
+				}
+		);
+	}
+
+	@Override
+	public int getItemCount() {
+		return countryList.size();
+	}
+
+	void setItems(ArrayList<Entry> countryList) {
+		this.countryList = countryList;
+	}
 }
+
+
