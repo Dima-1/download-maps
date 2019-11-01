@@ -59,13 +59,21 @@ class DownloadMap extends AsyncTask<Entry, Integer, String> {
 			byte[] data = new byte[1024];
 
 			long total = 0;
-
+			int threshold = 0;
 			while ((count = input.read(data)) != -1) {
 				total += count;
-				publishProgress();
-				params[0].setDownloadProgress((int) ((total * 100) / lengthOfFile));
+
+				int downloadProgress = (int) ((total * 100) / lengthOfFile);
+				if (downloadProgress > threshold) {
+					threshold += 4;
+					params[0].setDownloadProgress(downloadProgress);
+					publishProgress();
+				}
+
 				output.write(data, 0, count);
 			}
+			params[0].setDownloadProgress(100);
+			publishProgress();
 			output.flush();
 			output.close();
 			input.close();

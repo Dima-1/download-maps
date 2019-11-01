@@ -22,11 +22,12 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 	private IView view;
 	private ArrayList<Entry> countryList;
 
-	static class ItemViewHolder extends RecyclerView.ViewHolder {
+	class ItemViewHolder extends RecyclerView.ViewHolder {
 		private ImageView map;
 		private TextView countryName;
 		private ProgressBar progressBar;
 		private ImageView download;
+		DownloadClickListener downloadClickListener;
 
 		ItemViewHolder(View itemView) {
 			super(itemView);
@@ -34,6 +35,32 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 			countryName = itemView.findViewById(R.id.tvCountryName);
 			download = itemView.findViewById(R.id.ivDownload);
 			progressBar = itemView.findViewById(R.id.progressBarMap);
+			downloadClickListener = new DownloadClickListener();
+			download.setOnClickListener(downloadClickListener);
+		}
+	}
+
+	class DownloadClickListener implements View.OnClickListener {
+		Entry entry;
+		boolean cancel;
+
+		@Override
+		public void onClick(View v) {
+			if (cancel) {
+				entry.setLoadWait(false);
+				view.cancelDownloadMap(entry);
+			} else {
+				entry.setLoadWait(true);
+				view.downloadMap(entry);
+			}
+		}
+
+		void setCancel(boolean cancel) {
+			this.cancel = cancel;
+		}
+
+		void setEntry(Entry entry) {
+			this.entry = entry;
 		}
 	}
 
@@ -54,13 +81,27 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 	@Override
 	public void onBindViewHolder(@NonNull final CountryListAdapter.ItemViewHolder viewHolder, int position) {
 		final Entry entry = countryList.get(position);
+
+		viewHolder.downloadClickListener.setEntry(entry);
 		viewHolder.countryName.setText(entry.getName());
-		Log.d("-------", "onBindViewHolder: ");
+		Log.d("-------", "onBindViewHolder: " + position);
+
 		if (0 < entry.getDownloadProgress() && entry.getDownloadProgress() < 100) {
+			entry.setLoadWait(false);
+			viewHolder.progressBar.setIndeterminate(false);
 			viewHolder.progressBar.setVisibility(View.VISIBLE);
 			viewHolder.progressBar.setProgress(entry.getDownloadProgress());
+			viewHolder.download.setImageDrawable(viewHolder.download.getResources()
+					.getDrawable(R.drawable.ic_action_remove_dark));
+			viewHolder.downloadClickListener.setCancel(true);
 		} else {
-			viewHolder.progressBar.setVisibility(View.GONE);
+			if (entry.isLoadWait()) {
+				viewHolder.progressBar.setVisibility(View.VISIBLE);
+				viewHolder.progressBar.setIndeterminate(true);
+			} else {
+				viewHolder.progressBar.setVisibility(View.GONE);
+				viewHolder.downloadClickListener.setCancel(false);
+			}
 		}
 		if (entry.getDownloadProgress() == 100) {
 			viewHolder.map.getContext();
@@ -69,6 +110,8 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 			DrawableCompat.setTint(wrapDrawable,
 					viewHolder.map.getResources().getColor(R.color.colorDownloadedMapIcon));
 			viewHolder.map.setImageDrawable(wrapDrawable);
+			viewHolder.download.setImageDrawable(viewHolder.download.getResources()
+					.getDrawable(R.drawable.ic_action_remove_dark));
 		} else {
 			Drawable normalDrawable = viewHolder.map.getDrawable();
 			Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
@@ -76,15 +119,6 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 					viewHolder.map.getResources().getColor(R.color.colorIcon));
 			viewHolder.map.setImageDrawable(wrapDrawable);
 		}
-
-		viewHolder.download.setOnClickListener(
-				new View.OnClickListener() {
-					@Override
-					public void onClick(View v) {
-						view.downloadMap(entry);
-					}
-				}
-		);
 	}
 
 	@Override

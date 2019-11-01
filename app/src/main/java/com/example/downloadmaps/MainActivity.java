@@ -1,6 +1,8 @@
 package com.example.downloadmaps;
 
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -55,5 +57,27 @@ public class MainActivity extends AppCompatActivity implements IView {
 	public void updateProgress() {
 		countryListAdapter.setItems(countryList);
 		countryListAdapter.notifyDataSetChanged();
+	}
+
+	@Override
+	public void cancelDownloadMap(Entry entry) {
+		final AlertDialog.Builder alertDialog;
+		alertDialog = new AlertDialog.Builder(MainActivity.this);
+		alertDialog.setTitle("Cancel");
+		alertDialog.setMessage("Cancel file download ?");
+		alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int arg1) {
+				Toast.makeText(getApplicationContext(), "Cancelled",
+						Toast.LENGTH_LONG).show();
+				dialog.cancel();
+			}
+		});
+		alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+			public void onClick(DialogInterface dialog, int arg1) {
+				dialog.cancel();
+			}
+		});
+		alertDialog.setCancelable(true);
+		alertDialog.show();
 	}
 }
