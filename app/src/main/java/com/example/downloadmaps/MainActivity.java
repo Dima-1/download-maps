@@ -11,6 +11,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -45,13 +48,17 @@ public class MainActivity extends AppCompatActivity implements IView {
 		LinearLayoutManager layoutManager = new LinearLayoutManager(this);
 		recyclerView.setLayoutManager(layoutManager);
 		RegionParser regionParser = new RegionParser();
-		countryList = regionParser.getRegions();
+		InputStream XmlFileInputStream = getResources().openRawResource(R.raw.regions);
+		try {
+			countryList = regionParser.setInputStream(XmlFileInputStream);
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (XmlPullParserException e) {
+			e.printStackTrace();
+		}
 		countryListAdapter = new CountryListAdapter(this, countryList);
 		recyclerView.setAdapter(countryListAdapter);
 		((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
-		InputStream XmlFileInputStream = getResources().openRawResource(R.raw.regions);
-//		regionParser.setInputStream(XmlFileInputStream);
-
     }
 
 	@Override
@@ -61,7 +68,6 @@ public class MainActivity extends AppCompatActivity implements IView {
 		downloadMapTasks.add(downloadMap);
 		downloadMap.execute();
 	}
-
 
 	@Override
 	public void updateProgress(Entry entry) {
@@ -95,7 +101,6 @@ public class MainActivity extends AppCompatActivity implements IView {
 		alertDialog.setCancelable(true);
 		alertDialog.show();
 	}
-
 
 	@Override
 	public void finishDownload(DownloadMap downloadMap) {
