@@ -9,4 +9,6 @@
     <color name="colorDivider">#e5e5e5</color>
     <color name="colorIcon">#727272</color>
     <color name="colorText">#212121</color>
+    <color name="colorProgress">#2175F3</color>
+
 </resources>

@@ -1,5 +1,6 @@
 package com.example.downloadmaps;
 
+import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.graphics.drawable.DrawableCompat;
@@ -34,6 +35,8 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 			countryName = itemView.findViewById(R.id.tvCountryName);
 			download = itemView.findViewById(R.id.ivDownload);
 			progressBar = itemView.findViewById(R.id.progressBarMap);
+			progressBar.getIndeterminateDrawable().setColorFilter(itemView.getResources().getColor(R.color.colorProgress), PorterDuff.Mode.SRC_IN);
+			progressBar.getProgressDrawable().setColorFilter(itemView.getResources().getColor(R.color.colorProgress), PorterDuff.Mode.SRC_IN);
 			downloadClickListener = new DownloadClickListener();
 			download.setOnClickListener(downloadClickListener);
 		}
@@ -94,6 +97,8 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 			} else {
 				viewHolder.progressBar.setVisibility(View.GONE);
 				viewHolder.downloadClickListener.setCancel(false);
+				viewHolder.download.setImageDrawable(viewHolder.download.getResources()
+						.getDrawable(R.drawable.ic_action_import));
 			}
 		}
 		if (entry.getDownloadProgress() == 100) {

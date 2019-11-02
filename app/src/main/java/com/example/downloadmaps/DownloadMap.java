@@ -42,7 +42,7 @@ class DownloadMap extends AsyncTask<Void, Integer, String> {
 	protected void onPreExecute() {
 
 		super.onPreExecute();
-		iView.updateProgress();
+		iView.updateProgress(entry);
 	}
 
 	@Override
@@ -110,6 +110,7 @@ class DownloadMap extends AsyncTask<Void, Integer, String> {
 	protected void onPostExecute(String s) {
 		super.onPostExecute(s);
 		iView.finishDownload(this);
+		iView.updateProgress(entry);
 	}
 
 	@Override
@@ -117,11 +118,11 @@ class DownloadMap extends AsyncTask<Void, Integer, String> {
 		super.onCancelled();
 		Log.d("=====", "onCancel");
 		iView.finishDownload(this);
-		iView.updateProgress();
+		iView.updateProgress(entry);
 
 	}
 	protected void onProgressUpdate(Integer... progress) {
-		iView.updateProgress();
+		iView.updateProgress(entry);
 	}
 
 }

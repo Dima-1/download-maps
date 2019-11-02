@@ -1,9 +1,20 @@
 package com.example.downloadmaps;
 
+import android.util.Xml;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 class RegionParser {
+	InputStream xmlFileInputStream;
+	private static final String ns = null;
+
 	ArrayList<Entry> getRegions() {
 		return new ArrayList<>(Arrays.asList(
 				new Entry("Denmark", "Denmark_capital-region_europe_2.obf.zip", null),
@@ -21,6 +32,27 @@ class RegionParser {
 				new Entry("denmark11", "Denmark_capital-region_europe_2.obf.zip", null),
 				new Entry("denmark12", "Denmark_capital-region_europe_2.obf.zip", null)
 		));
+	}
 
+	public void setInputStream(InputStream xmlFileInputStream) throws IOException, XmlPullParserException {
+		this.xmlFileInputStream = xmlFileInputStream;
+		parse(xmlFileInputStream);
+	}
+
+	public List parse(InputStream in) throws XmlPullParserException, IOException {
+
+		try {
+			XmlPullParser parser = Xml.newPullParser();
+			parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
+			parser.setInput(in, null);
+			parser.nextTag();
+			return readFeed(parser);
+		} finally {
+			in.close();
+		}
+	}
+
+	private List readFeed(XmlPullParser parser) {
+		return new ArrayList();
 	}
 }

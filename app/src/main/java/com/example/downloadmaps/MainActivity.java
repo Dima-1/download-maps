@@ -6,10 +6,12 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SimpleItemAnimator;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -42,10 +44,14 @@ public class MainActivity extends AppCompatActivity implements IView {
 		RecyclerView recyclerView = findViewById(R.id.countryList);
 		LinearLayoutManager layoutManager = new LinearLayoutManager(this);
 		recyclerView.setLayoutManager(layoutManager);
-
-		countryList = new RegionParser().getRegions();
+		RegionParser regionParser = new RegionParser();
+		countryList = regionParser.getRegions();
 		countryListAdapter = new CountryListAdapter(this, countryList);
 		recyclerView.setAdapter(countryListAdapter);
+		((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
+		InputStream XmlFileInputStream = getResources().openRawResource(R.raw.regions);
+//		regionParser.setInputStream(XmlFileInputStream);
+
     }
 
 	@Override
@@ -56,10 +62,11 @@ public class MainActivity extends AppCompatActivity implements IView {
 		downloadMap.execute();
 	}
 
+
 	@Override
-	public void updateProgress() {
+	public void updateProgress(Entry entry) {
 		countryListAdapter.setItems(countryList);
-		countryListAdapter.notifyDataSetChanged();
+		countryListAdapter.notifyItemChanged(countryList.indexOf(entry));
 	}
 
 	@Override
