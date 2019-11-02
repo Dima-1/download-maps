@@ -18,6 +18,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 	static final long BYTE_IN_GIGABYTE = 0x40000000L;
 	ProgressBar progressBar;
 	CountryListAdapter countryListAdapter;
+	ArrayList<DownloadMap> downloadMapTasks = new ArrayList<>();
 	ArrayList<Entry> countryList;
 
 	@Override
@@ -50,7 +51,9 @@ public class MainActivity extends AppCompatActivity implements IView {
 	@Override
 	public void downloadMap(Entry entry) {
 		Toast.makeText(this, entry.getFileName(), Toast.LENGTH_SHORT).show();
-		new DownloadMap(this).execute(entry);
+		DownloadMap downloadMap = new DownloadMap(this, entry);
+		downloadMapTasks.add(downloadMap);
+		downloadMap.execute();
 	}
 
 	@Override
@@ -60,24 +63,35 @@ public class MainActivity extends AppCompatActivity implements IView {
 	}
 
 	@Override
-	public void cancelDownloadMap(Entry entry) {
+	public void cancelDownloadMap(final Entry entry) {
 		final AlertDialog.Builder alertDialog;
 		alertDialog = new AlertDialog.Builder(MainActivity.this);
-		alertDialog.setTitle("Cancel");
-		alertDialog.setMessage("Cancel file download ?");
-		alertDialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+		alertDialog.setTitle(R.string.cancel);
+		alertDialog.setMessage(R.string.cancel_file_download);
+		alertDialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int arg1) {
-				Toast.makeText(getApplicationContext(), "Cancelled",
+				for (DownloadMap dm : downloadMapTasks) {
+					if (dm.getFileName().equals(entry.getFileName())) {
+						dm.cancel(true);
+					}
+				}
+				Toast.makeText(getApplicationContext(), getString(R.string.cancelled),
 						Toast.LENGTH_LONG).show();
 				dialog.cancel();
 			}
 		});
-		alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+		alertDialog.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int arg1) {
 				dialog.cancel();
 			}
 		});
 		alertDialog.setCancelable(true);
 		alertDialog.show();
+	}
+
+
+	@Override
+	public void finishDownload(DownloadMap downloadMap) {
+		downloadMapTasks.remove(downloadMap);
 	}
 }

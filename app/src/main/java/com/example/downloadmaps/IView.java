@@ -7,4 +7,6 @@ public interface IView {
 	void updateProgress();
 
 	void cancelDownloadMap(Entry entry);
+
+	void finishDownload(DownloadMap downloadMap);
 }

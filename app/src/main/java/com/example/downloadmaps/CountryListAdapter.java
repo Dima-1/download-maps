@@ -4,7 +4,6 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -84,20 +83,14 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 
 		viewHolder.downloadClickListener.setEntry(entry);
 		viewHolder.countryName.setText(entry.getName());
-		Log.d("-------", "onBindViewHolder: " + position);
 
 		if (0 < entry.getDownloadProgress() && entry.getDownloadProgress() < 100) {
 			entry.setLoadWait(false);
-			viewHolder.progressBar.setIndeterminate(false);
-			viewHolder.progressBar.setVisibility(View.VISIBLE);
 			viewHolder.progressBar.setProgress(entry.getDownloadProgress());
-			viewHolder.download.setImageDrawable(viewHolder.download.getResources()
-					.getDrawable(R.drawable.ic_action_remove_dark));
-			viewHolder.downloadClickListener.setCancel(true);
+			setForCancel(viewHolder, false);
 		} else {
 			if (entry.isLoadWait()) {
-				viewHolder.progressBar.setVisibility(View.VISIBLE);
-				viewHolder.progressBar.setIndeterminate(true);
+				setForCancel(viewHolder, true);
 			} else {
 				viewHolder.progressBar.setVisibility(View.GONE);
 				viewHolder.downloadClickListener.setCancel(false);
@@ -119,6 +112,14 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 					viewHolder.map.getResources().getColor(R.color.colorIcon));
 			viewHolder.map.setImageDrawable(wrapDrawable);
 		}
+	}
+
+	private void setForCancel(@NonNull ItemViewHolder viewHolder, boolean indeterminate) {
+		viewHolder.progressBar.setIndeterminate(indeterminate);
+		viewHolder.progressBar.setVisibility(View.VISIBLE);
+		viewHolder.download.setImageDrawable(viewHolder.download.getResources()
+				.getDrawable(R.drawable.ic_action_remove_dark));
+		viewHolder.downloadClickListener.setCancel(true);
 	}
 
 	@Override
