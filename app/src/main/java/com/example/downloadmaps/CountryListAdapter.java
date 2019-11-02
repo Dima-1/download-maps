@@ -3,6 +3,7 @@ package com.example.downloadmaps;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -102,8 +103,8 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 			}
 		}
 		if (entry.getDownloadProgress() == 100) {
-			viewHolder.map.getContext();
-			Drawable normalDrawable = viewHolder.map.getDrawable();
+			Drawable normalDrawable = ContextCompat.getDrawable(viewHolder.map.getContext(),
+					R.drawable.ic_map);
 			Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
 			DrawableCompat.setTint(wrapDrawable,
 					viewHolder.map.getResources().getColor(R.color.colorDownloadedMapIcon));
