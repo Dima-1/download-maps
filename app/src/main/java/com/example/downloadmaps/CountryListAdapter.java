@@ -50,10 +50,10 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 		@Override
 		public void onClick(View v) {
 			if (cancel) {
-				entry.setLoadWait(false);
+				entry.setLoadWaiting(false);
 				view.cancelDownloadMap(entry);
 			} else {
-				entry.setLoadWait(true);
+				entry.setLoadWaiting(true);
 				view.downloadMap(entry);
 			}
 		}
@@ -89,11 +89,11 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 		viewHolder.countryName.setText(entry.getName());
 
 		if (0 < entry.getDownloadProgress() && entry.getDownloadProgress() < 100) {
-			entry.setLoadWait(false);
+			entry.setLoadWaiting(false);
 			viewHolder.progressBar.setProgress(entry.getDownloadProgress());
 			setForCancel(viewHolder, false);
 		} else {
-			if (entry.isLoadWait()) {
+			if (entry.isLoadWaiting()) {
 				setForCancel(viewHolder, true);
 			} else {
 				viewHolder.progressBar.setVisibility(View.GONE);
@@ -112,11 +112,19 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 			viewHolder.download.setImageDrawable(viewHolder.download.getResources()
 					.getDrawable(R.drawable.ic_action_remove_dark));
 		} else {
-			Drawable normalDrawable = viewHolder.map.getDrawable();
+			Drawable normalDrawable = ContextCompat.getDrawable(viewHolder.map.getContext(),
+					R.drawable.ic_map);
 			Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
 			DrawableCompat.setTint(wrapDrawable,
 					viewHolder.map.getResources().getColor(R.color.colorIcon));
 			viewHolder.map.setImageDrawable(wrapDrawable);
+			viewHolder.download.setImageDrawable(viewHolder.download.getResources()
+					.getDrawable(R.drawable.ic_action_import));
+		}
+		if (entry.getFileName().isEmpty()) {
+			viewHolder.download.setVisibility(View.INVISIBLE);
+		} else {
+			viewHolder.download.setVisibility(View.VISIBLE);
 		}
 	}
 

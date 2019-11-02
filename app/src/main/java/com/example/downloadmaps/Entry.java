@@ -7,7 +7,7 @@ package com.example.downloadmaps;
 public class Entry {
 	private String name;
 	private String fileName;
-	private boolean loadWait;
+	private boolean loadWaiting;
 	private int downloadProgress;
 	private Entry region;
 
@@ -26,12 +26,12 @@ public class Entry {
         this.region = region;
     }
 
-	public boolean isLoadWait() {
-		return loadWait;
+	public boolean isLoadWaiting() {
+		return loadWaiting;
     }
 
-	public void setLoadWait(boolean loadWait) {
-		this.loadWait = loadWait;
+	public void setLoadWaiting(boolean loadWaiting) {
+		this.loadWaiting = loadWaiting;
     }
 
 	String getName() {
