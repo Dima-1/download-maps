@@ -117,6 +117,7 @@ class DownloadMap extends AsyncTask<Void, Integer, String> {
 	protected void onCancelled() {
 		super.onCancelled();
 		Log.d("=====", "onCancel");
+		entry.setDownloadProgress(0);
 		iView.finishDownload(this);
 		iView.updateProgress(entry);
 

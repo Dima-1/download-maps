@@ -51,6 +51,7 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 		public void onClick(View v) {
 			if (cancel) {
 				entry.setLoadWaiting(false);
+				entry.setDownloadProgress(0);
 				view.cancelDownloadMap(entry);
 			} else {
 				entry.setLoadWaiting(true);
@@ -111,7 +112,7 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 			viewHolder.map.setImageDrawable(wrapDrawable);
 			viewHolder.download.setImageDrawable(viewHolder.download.getResources()
 					.getDrawable(R.drawable.ic_action_remove_dark));
-		} else {
+		} else if (entry.getDownloadProgress() == 0 && !entry.isLoadWaiting()) {
 			Drawable normalDrawable = ContextCompat.getDrawable(viewHolder.map.getContext(),
 					R.drawable.ic_map);
 			Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
