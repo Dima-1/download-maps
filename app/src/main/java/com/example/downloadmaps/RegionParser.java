@@ -97,7 +97,8 @@ class RegionParser {
 					mapFileName = prefix + "_" + parser.getAttributeValue(null, "name");
 				Log.d(TAG, "readSubRegion: " + parser.getLineNumber() + " " + parser.getAttributeValue(null, "name")
 						+ " -- " + mapFileName);
-				entries.add(new Entry(parser.getAttributeValue(null, "name"), mapFileName, null));
+				if (!(parser.getAttributeValue(null, "type") != null && !parser.getAttributeValue(null, "type").equals("map")))
+					entries.add(new Entry(parser.getAttributeValue(null, "name"), mapFileName, null));
 				entries.addAll(readSubRegion(parser, prefix + "_" + parser.getAttributeValue(null, "name")));
 			}
 		}
