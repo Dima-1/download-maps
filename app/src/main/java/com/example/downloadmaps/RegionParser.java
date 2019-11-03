@@ -19,7 +19,7 @@ class RegionParser {
 		return parse(xmlFileInputStream);
 	}
 
-	private ArrayList parse(InputStream in) throws XmlPullParserException, IOException {
+	private ArrayList<Entry> parse(InputStream in) throws XmlPullParserException, IOException {
 
 		try {
 			XmlPullParser parser = Xml.newPullParser();
@@ -32,9 +32,9 @@ class RegionParser {
 		}
 	}
 
-	private ArrayList readFeed(XmlPullParser parser) throws IOException, XmlPullParserException {
+	private ArrayList<Entry> readFeed(XmlPullParser parser) throws IOException, XmlPullParserException {
 
-		ArrayList entries = new ArrayList();
+		ArrayList<Entry> entries = new ArrayList<>();
 
 		parser.require(XmlPullParser.START_TAG, ns, "regions_list");
 		while (parser.next() != XmlPullParser.END_TAG) {
@@ -44,15 +44,22 @@ class RegionParser {
 			String name = parser.getName();
 			Log.d(TAG, "readFeed: " + parser.getLineNumber() + " " + parser.getAttributeValue(null, "name"));
 			if (name.equals("region")) {
-				entries.addAll(readEurope(parser));
+				entries.addAll(readRegion(parser));
 			}
 		}
 		Log.d(TAG, "readFeed: count ==== " + entries.size());
+		for (Entry e : entries) {
+			if (!e.getFileName().isEmpty()) {
+				e.setFileName(createMapFileName(e.getFileName()));
+			}
+			e.setName(createMapName(e.getName()));
+			Log.d(TAG, "readFeed:" + e.getName() + " = " + e.getFileName());
+		}
 		return entries;
 	}
 
-	private ArrayList readEurope(XmlPullParser parser) throws IOException, XmlPullParserException {
-		ArrayList entries = new ArrayList();
+	private ArrayList<Entry> readRegion(XmlPullParser parser) throws IOException, XmlPullParserException {
+		ArrayList<Entry> entries = new ArrayList<>();
 		parser.require(XmlPullParser.START_TAG, ns, "region");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
@@ -61,40 +68,45 @@ class RegionParser {
 			String prefix = "";
 			String name = parser.getName();
 			if (name.equals("region")) {
-				Log.d(TAG, "readEurope: " + createMapName(parser.getAttributeValue(null, "name")
-						+ " " + createMapFileName(prefix, parser.getAttributeValue(null, "name"))));
-				entries.add(new Entry(createMapName(parser.getAttributeValue(null, "name")),
-						createMapFileName(prefix, parser.getAttributeValue(null, "name")), null));
-				entries.addAll(readRegion(parser));
+
+				String mapFileName = "";
+				if (parser.getAttributeValue(null, "map") == null
+						|| (parser.getAttributeValue(null, "map") != null && !parser.getAttributeValue(null, "map").equals("no")))
+					mapFileName = parser.getAttributeValue(null, "name");
+				Log.d(TAG, "readRegion: " + (parser.getAttributeValue(null, "name")
+						+ " - " + mapFileName));
+				entries.add(new Entry((parser.getAttributeValue(null, "name")), mapFileName, null));
+				entries.addAll(readSubRegion(parser, parser.getAttributeValue(null, "name")));
 			}
 		}
 		return entries;
 	}
 
-	private ArrayList readRegion(XmlPullParser parser) throws IOException, XmlPullParserException {
-		ArrayList entries = new ArrayList();
+	private ArrayList<Entry> readSubRegion(XmlPullParser parser, String prefix) throws IOException, XmlPullParserException {
+		ArrayList<Entry> entries = new ArrayList<>();
 		parser.require(XmlPullParser.START_TAG, ns, "region");
 		while (parser.next() != XmlPullParser.END_TAG) {
 			if (parser.getEventType() != XmlPullParser.START_TAG) {
 				continue;
 			}
 			String name = parser.getName();
-			Log.d(TAG, "readRegion: " + parser.getLineNumber() + " " + parser.getAttributeValue(null, "name"));
 			if (name.equals("region")) {
-				entries.add(new Entry(parser.getAttributeValue(null, "name"), "", null));
-				entries.addAll(readRegion(parser));
+				String mapFileName = "";
+				if (parser.getAttributeValue(null, "map") == null
+						|| (parser.getAttributeValue(null, "map") != null && !parser.getAttributeValue(null, "map").equals("no")))
+					mapFileName = prefix + "_" + parser.getAttributeValue(null, "name");
+				Log.d(TAG, "readSubRegion: " + parser.getLineNumber() + " " + parser.getAttributeValue(null, "name")
+						+ " -- " + mapFileName);
+				entries.add(new Entry(parser.getAttributeValue(null, "name"), mapFileName, null));
+				entries.addAll(readSubRegion(parser, prefix + "_" + parser.getAttributeValue(null, "name")));
 			}
 		}
 		return entries;
 	}
 
-	String createMapFileName(String prefix, String name) {
-		if (!prefix.isEmpty()) {
-			prefix = prefix.substring(0, 1).toUpperCase() + prefix.substring(1) + "_";
-		} else {
+	private String createMapFileName(String name) {
 			name = name.substring(0, 1).toUpperCase() + name.substring(1);
-		}
-		return prefix + name + SUFFIX;
+		return name + SUFFIX;
 	}
 
 	private String createMapName(String name) {
@@ -103,8 +115,7 @@ class RegionParser {
 		for (String n : splitName) {
 			nameBuilder.append(n.substring(0, 1).toUpperCase()).append(n.substring(1)).append(" ");
 		}
-		name = nameBuilder.toString();
-		name.trim();
+		name = nameBuilder.toString().trim();
 		return name;
 	}
 }
