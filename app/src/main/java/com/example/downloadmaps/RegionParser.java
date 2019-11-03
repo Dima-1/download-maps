@@ -9,15 +9,36 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 class RegionParser {
 	private static final String TAG = "RegionParser";
 	private static final String ns = null;
 	private static final String SUFFIX = "_europe_2.obf.zip";
+	private ArrayList<Entry> arrayList = new ArrayList<>();
 
 	ArrayList setInputStream(InputStream xmlFileInputStream) throws IOException, XmlPullParserException {
 		return parse(xmlFileInputStream);
 	}
+
+	ArrayList<Entry> getFilteredList(Entry parent) {
+		ArrayList<Entry> filteredArray = new ArrayList<>();
+		for (Entry e : arrayList) {
+			if (e.getRegion() == parent) {
+				filteredArray.add(e);
+			}
+		}
+		Comparator<Entry> comparator = new Comparator<Entry>() {
+
+			public int compare(Entry entry1, Entry entry2) {
+				return entry1.getName().compareTo(entry2.getName());
+			}
+		};
+		Collections.sort(filteredArray, comparator);
+		return filteredArray;
+	}
+
 
 	private ArrayList<Entry> parse(InputStream in) throws XmlPullParserException, IOException {
 
@@ -26,11 +47,13 @@ class RegionParser {
 			parser.setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false);
 			parser.setInput(in, null);
 			parser.nextTag();
-			return readFeed(parser);
+			arrayList = readFeed(parser);
+			return arrayList;
 		} finally {
 			in.close();
 		}
 	}
+
 
 	private ArrayList<Entry> readFeed(XmlPullParser parser) throws IOException, XmlPullParserException {
 
@@ -47,15 +70,18 @@ class RegionParser {
 				entries.addAll(readRegion(parser));
 			}
 		}
-		Log.d(TAG, "readFeed: count ==== " + entries.size());
+		Log.d(TAG, "readFeed: count: " + entries.size());
+		createNameAndMapName(entries);
+		return entries;
+	}
+
+	private void createNameAndMapName(ArrayList<Entry> entries) {
 		for (Entry e : entries) {
 			if (!e.getFileName().isEmpty()) {
 				e.setFileName(createMapFileName(e.getFileName()));
 			}
-			e.setName(createMapName(e.getName()));
-			Log.d(TAG, "readFeed:" + e.getName() + " = " + e.getFileName());
+			e.setName(createName(e.getName()));
 		}
-		return entries;
 	}
 
 	private ArrayList<Entry> readRegion(XmlPullParser parser) throws IOException, XmlPullParserException {
@@ -121,7 +147,7 @@ class RegionParser {
 		return name + SUFFIX;
 	}
 
-	private String createMapName(String name) {
+	private String createName(String name) {
 		String[] splitName = name.split("-");
 		StringBuilder nameBuilder = new StringBuilder();
 		for (String n : splitName) {
@@ -129,5 +155,12 @@ class RegionParser {
 		}
 		name = nameBuilder.toString().trim();
 		return name;
+	}
+
+	boolean existSubRegion(Entry entry) {
+		for (int i = 0; i < arrayList.size(); i++)
+			if (entry.equals(arrayList.get(i).getRegion()))
+				return true;
+		return false;
 	}
 }

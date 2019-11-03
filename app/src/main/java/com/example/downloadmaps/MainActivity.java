@@ -7,6 +7,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SimpleItemAnimator;
+import android.support.v7.widget.Toolbar;
+import android.view.View;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,11 +27,17 @@ public class MainActivity extends AppCompatActivity implements IView {
 	CountryListAdapter countryListAdapter;
 	ArrayList<DownloadMap> downloadMapTasks = new ArrayList<>();
 	ArrayList<Entry> countryList;
+	RegionParser regionParser;
+	Toolbar toolbar;
+	private RecyclerView recyclerView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		toolbar = findViewById(R.id.toolbar);
+		setSupportActionBar(toolbar);
 
 		TextView tvFreeMemory = findViewById(R.id.tvFreeMemory);
 		float freeMemoryF = MemoryInfo.getAvailableExternalMemorySize();
@@ -44,10 +52,10 @@ public class MainActivity extends AppCompatActivity implements IView {
 		int progress = (int) ((1 - freeMemoryF / totalMemoryF) * 100);
 		progressBar.setProgress(progress);
 
-		RecyclerView recyclerView = findViewById(R.id.countryList);
+		recyclerView = findViewById(R.id.countryList);
 		LinearLayoutManager layoutManager = new LinearLayoutManager(this);
 		recyclerView.setLayoutManager(layoutManager);
-		RegionParser regionParser = new RegionParser();
+		regionParser = new RegionParser();
 		InputStream XmlFileInputStream = getResources().openRawResource(R.raw.regions);
 		try {
 			countryList = regionParser.setInputStream(XmlFileInputStream);
@@ -56,27 +64,57 @@ public class MainActivity extends AppCompatActivity implements IView {
 		} catch (XmlPullParserException e) {
 			e.printStackTrace();
 		}
+		countryList = regionParser.getFilteredList(null);
 		countryListAdapter = new CountryListAdapter(this, countryList);
 		recyclerView.setAdapter(countryListAdapter);
 		((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
     }
 
 	@Override
+	public boolean onSupportNavigateUp() {
+		onBackPressed();
+		return true;
+	}
+
+	@Override
+	public void onBackPressed() {
+		super.onBackPressed();
+	}
+
+	@Override
+	public void subRegionClick(Entry entry) {
+		if (entry != null) {
+			if (regionParser.existSubRegion(entry)) {
+				countryListAdapter.setItems(regionParser.getFilteredList(entry));
+				toolbar.setTitle(entry.getName());
+				getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+				getSupportActionBar().setDisplayShowHomeEnabled(true);
+				findViewById(R.id.llFreeMemory).setVisibility(View.GONE);
+				findViewById(R.id.tvEurope).setVisibility(View.GONE);
+				countryListAdapter.notifyDataSetChanged();
+			}
+		}
+	}
+
+	@Override
 	public void downloadMap(Entry entry) {
+		entry.setLoadWaiting(true);
 		Toast.makeText(this, entry.getFileName(), Toast.LENGTH_SHORT).show();
 		DownloadMap downloadMap = new DownloadMap(this, entry);
 		downloadMapTasks.add(downloadMap);
 		downloadMap.execute();
+		countryListAdapter.notifyDataSetChanged();
 	}
 
 	@Override
 	public void updateProgress(Entry entry) {
-		countryListAdapter.setItems(countryList);
-		countryListAdapter.notifyItemChanged(countryList.indexOf(entry));
+		countryListAdapter.notifyItemChanged(countryListAdapter.getCountryList().indexOf(entry));
 	}
 
 	@Override
 	public void cancelDownloadMap(final Entry entry) {
+		entry.setLoadWaiting(false);
+		entry.setDownloadProgress(0);
 		final AlertDialog.Builder alertDialog;
 		alertDialog = new AlertDialog.Builder(MainActivity.this);
 		alertDialog.setTitle(R.string.cancel);
@@ -100,6 +138,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 		});
 		alertDialog.setCancelable(true);
 		alertDialog.show();
+		countryListAdapter.notifyDataSetChanged();
 	}
 
 	@Override

@@ -9,4 +9,6 @@ public interface IView {
 	void cancelDownloadMap(Entry entry);
 
 	void finishDownload(DownloadMap downloadMap);
+
+	void subRegionClick(Entry entry);
 }

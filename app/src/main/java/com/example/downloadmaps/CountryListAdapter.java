@@ -3,6 +3,7 @@ package com.example.downloadmaps;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.RecyclerView;
@@ -23,23 +24,45 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 	private IView view;
 	private ArrayList<Entry> countryList;
 
+
 	class ItemViewHolder extends RecyclerView.ViewHolder {
 		private ImageView map;
 		private TextView countryName;
 		private ProgressBar progressBar;
 		private ImageView download;
+		private ConstraintLayout clItemMain;
 		DownloadClickListener downloadClickListener;
+		ItemViewClickListener itemViewClickListener;
 
 		ItemViewHolder(View itemView) {
 			super(itemView);
 			map = itemView.findViewById(R.id.ivMap);
 			countryName = itemView.findViewById(R.id.tvCountryName);
+
 			download = itemView.findViewById(R.id.ivDownload);
+			downloadClickListener = new DownloadClickListener();
+			download.setOnClickListener(downloadClickListener);
+
+			clItemMain = itemView.findViewById(R.id.clItemMain);
+			itemViewClickListener = new ItemViewClickListener();
+			clItemMain.setOnClickListener(itemViewClickListener);
+
 			progressBar = itemView.findViewById(R.id.progressBarMap);
 			progressBar.getIndeterminateDrawable().setColorFilter(itemView.getResources().getColor(R.color.colorProgress), PorterDuff.Mode.SRC_IN);
 			progressBar.getProgressDrawable().setColorFilter(itemView.getResources().getColor(R.color.colorProgress), PorterDuff.Mode.SRC_IN);
-			downloadClickListener = new DownloadClickListener();
-			download.setOnClickListener(downloadClickListener);
+		}
+	}
+
+	class ItemViewClickListener implements View.OnClickListener {
+		Entry entry;
+
+		void setEntry(Entry entry) {
+			this.entry = entry;
+		}
+
+		@Override
+		public void onClick(View v) {
+			view.subRegionClick(entry);
 		}
 	}
 
@@ -50,11 +73,8 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 		@Override
 		public void onClick(View v) {
 			if (cancel) {
-				entry.setLoadWaiting(false);
-				entry.setDownloadProgress(0);
 				view.cancelDownloadMap(entry);
 			} else {
-				entry.setLoadWaiting(true);
 				view.downloadMap(entry);
 			}
 		}
@@ -85,7 +105,7 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 	@Override
 	public void onBindViewHolder(@NonNull final CountryListAdapter.ItemViewHolder viewHolder, int position) {
 		final Entry entry = countryList.get(position);
-
+		viewHolder.itemViewClickListener.setEntry(entry);
 		viewHolder.downloadClickListener.setEntry(entry);
 		viewHolder.countryName.setText(entry.getName());
 
@@ -144,6 +164,10 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 
 	void setItems(ArrayList<Entry> countryList) {
 		this.countryList = countryList;
+	}
+
+	ArrayList<Entry> getCountryList() {
+		return countryList;
 	}
 }
 
