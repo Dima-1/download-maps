@@ -11,4 +11,5 @@
     <string name="cancel_file_download">Cancel file download ?</string>
     <string name="cancelled">Cancelled</string>
     <string name="europe">Europe</string>
+    <string name="download_maps">Download Maps</string>
 </resources>
