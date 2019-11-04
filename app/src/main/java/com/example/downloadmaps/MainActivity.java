@@ -18,6 +18,7 @@ import org.xmlpull.v1.XmlPullParserException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity implements IView {
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 	CountryListAdapter countryListAdapter;
 	ArrayList<DownloadMap> downloadMapTasks = new ArrayList<>();
 	ArrayList<Entry> countryList;
+	LinkedList<Entry> backStack = new LinkedList<>();
 	RegionParser regionParser;
 	Toolbar toolbar;
 	private RecyclerView recyclerView;
@@ -78,6 +80,24 @@ public class MainActivity extends AppCompatActivity implements IView {
 
 	@Override
 	public void onBackPressed() {
+		if (!backStack.isEmpty()) {
+			Entry entry = backStack.pop();
+			if (entry.getRegion() != null) {
+				countryListAdapter.setItems(regionParser.getFilteredList(entry.getRegion()));
+				toolbar.setTitle(entry.getRegion().getName());
+				countryListAdapter.notifyDataSetChanged();
+				return;
+			} else {
+				countryListAdapter.setItems(regionParser.getFilteredList(null));
+				toolbar.setTitle(getString(R.string.app_name));
+				getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+				getSupportActionBar().setDisplayShowHomeEnabled(false);
+				findViewById(R.id.llFreeMemory).setVisibility(View.VISIBLE);
+				findViewById(R.id.tvEurope).setVisibility(View.VISIBLE);
+				countryListAdapter.notifyDataSetChanged();
+				return;
+			}
+		}
 		super.onBackPressed();
 	}
 
@@ -92,6 +112,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 				findViewById(R.id.llFreeMemory).setVisibility(View.GONE);
 				findViewById(R.id.tvEurope).setVisibility(View.GONE);
 				countryListAdapter.notifyDataSetChanged();
+				backStack.push(entry);
 			}
 		}
 	}

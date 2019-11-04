@@ -19,7 +19,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="Download Maps"
+        app:title="@string/download_maps"
         app:titleTextColor="@android:color/white" />
 
     <android.support.constraint.ConstraintLayout
