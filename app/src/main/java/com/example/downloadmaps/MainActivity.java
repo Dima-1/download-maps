@@ -27,13 +27,11 @@ public class MainActivity extends AppCompatActivity implements IView {
 	static final long BYTE_IN_GIGABYTE = 0x40000000L;
 	static final String TAG_DATA = "data";
 	private RetainedFragment retainedFragment;
-	ProgressBar progressBar;
+	Toolbar toolbar;
 	CountryListAdapter countryListAdapter;
 	ArrayList<DownloadMap> downloadMapTasks = new ArrayList<>();
-	ArrayList<Entry> countryList;
 	LinkedList<Entry> backStack = new LinkedList<>();
 	RegionParser regionParser;
-	Toolbar toolbar;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +50,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 
 		float totalMemoryF = MemoryInfo.getTotalExternalMemorySize();
 		totalMemoryF /= BYTE_IN_GIGABYTE;
-		progressBar = findViewById(R.id.progressBar);
+		ProgressBar progressBar = findViewById(R.id.progressBar);
 		int progress = (int) ((1 - freeMemoryF / totalMemoryF) * 100);
 		progressBar.setProgress(progress);
 
@@ -62,15 +60,14 @@ public class MainActivity extends AppCompatActivity implements IView {
 		regionParser = new RegionParser();
 		InputStream regions = getResources().openRawResource(R.raw.regions);
 		try {
-			countryList = regionParser.parseInputStream(regions);
+			regionParser.parseInputStream(regions);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (XmlPullParserException e) {
 			e.printStackTrace();
 		}
-		countryList = regionParser.getFilteredList(null);
-		countryListAdapter = new CountryListAdapter(this, countryList);
-		recyclerView.setAdapter(countryListAdapter);
+		countryListAdapter = new CountryListAdapter(this, regionParser.getFilteredList(null));
+
 		if (recyclerView.getItemAnimator() != null) {
 			((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
 		}
@@ -81,18 +78,28 @@ public class MainActivity extends AppCompatActivity implements IView {
 		if (retainedFragment == null) {
 			retainedFragment = new RetainedFragment();
 			fm.beginTransaction().add(retainedFragment, TAG_DATA).commit();
-			retainedFragment.setCountryList(regionParser.getAllCountryList());
-			retainedFragment.setBackStack(backStack);
+			saveInRetainedFragment();
 		} else {
 
 			regionParser.setAllCountryList(retainedFragment.getCountryList());
 			backStack = retainedFragment.getBackStack();
+			downloadMapTasks = retainedFragment.getDownloadTaskList();
+			for (DownloadMap t : downloadMapTasks) {
+				t.setView(this);
+			}
 			if (!backStack.isEmpty()) {
 				displayListHeader(backStack.peekFirst());
 			}
 			countryListAdapter.setItems(regionParser.getFilteredList(backStack.peekFirst()));
 			countryListAdapter.notifyDataSetChanged();
 		}
+		recyclerView.setAdapter(countryListAdapter);
+	}
+
+	private void saveInRetainedFragment() {
+		retainedFragment.setDownloadTaskList(downloadMapTasks);
+		retainedFragment.setCountryList(regionParser.getAllCountryList());
+		retainedFragment.setBackStack(backStack);
 	}
 
 	@Override
@@ -199,7 +206,6 @@ public class MainActivity extends AppCompatActivity implements IView {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		retainedFragment.setCountryList(regionParser.getAllCountryList());
-		retainedFragment.setBackStack(backStack);
+		saveInRetainedFragment();
 	}
 }

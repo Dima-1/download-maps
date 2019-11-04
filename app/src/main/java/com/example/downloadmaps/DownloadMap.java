@@ -22,16 +22,20 @@ class DownloadMap extends AsyncTask<Void, Integer, String> {
 	private static final String BASE_URL = "http://download.osmand.net/download.php?standard=yes&file=";
 	private static final String MAP_FOLDER = "maps";
 	private static final int INPUT_BUFFER_SIZE = 8192;
-	private IView iView;
+	private IView view;
 
 	private String fileName;
 	private String folderName;
 	private Entry entry;
 
-	DownloadMap(IView iView, Entry entry) {
-		this.iView = iView;
+	DownloadMap(IView view, Entry entry) {
+		this.view = view;
 		this.entry = entry;
 		fileName = entry.getFileName();
+	}
+
+	void setView(IView view) {
+		this.view = view;
 	}
 
 	String getFileName() {
@@ -42,7 +46,7 @@ class DownloadMap extends AsyncTask<Void, Integer, String> {
 	protected void onPreExecute() {
 
 		super.onPreExecute();
-		iView.updateProgress(entry);
+		view.updateProgress(entry);
 	}
 
 	@Override
@@ -109,21 +113,20 @@ class DownloadMap extends AsyncTask<Void, Integer, String> {
 	@Override
 	protected void onPostExecute(String s) {
 		super.onPostExecute(s);
-		iView.finishDownload(this);
-		iView.updateProgress(entry);
+		view.finishDownload(this);
+		view.updateProgress(entry);
 	}
 
 	@Override
 	protected void onCancelled() {
 		super.onCancelled();
-		Log.d("=====", "onCancel");
 		entry.setDownloadProgress(0);
-		iView.finishDownload(this);
-		iView.updateProgress(entry);
+		view.finishDownload(this);
+		view.updateProgress(entry);
 
 	}
 	protected void onProgressUpdate(Integer... progress) {
-		iView.updateProgress(entry);
+		view.updateProgress(entry);
 	}
 
 }

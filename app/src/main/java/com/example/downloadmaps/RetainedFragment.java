@@ -15,6 +15,7 @@ public class RetainedFragment extends Fragment {
 
 	private ArrayList<Entry> data;
 	private LinkedList<Entry> backStack;
+	ArrayList<DownloadMap> downloadMapTasks;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -36,5 +37,13 @@ public class RetainedFragment extends Fragment {
 
 	public void setBackStack(LinkedList<Entry> backStack) {
 		this.backStack = backStack;
+	}
+
+	public void setDownloadTaskList(ArrayList<DownloadMap> downloadMapTasks) {
+		this.downloadMapTasks = downloadMapTasks;
+	}
+
+	public ArrayList<DownloadMap> getDownloadTaskList() {
+		return downloadMapTasks;
 	}
 }
