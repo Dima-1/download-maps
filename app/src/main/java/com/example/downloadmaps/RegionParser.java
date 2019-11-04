@@ -39,7 +39,6 @@ class RegionParser {
 		return filteredArray;
 	}
 
-
 	private ArrayList<Entry> parse(InputStream in) throws XmlPullParserException, IOException {
 
 		try {
@@ -163,4 +162,13 @@ class RegionParser {
 				return true;
 		return false;
 	}
+
+	ArrayList<Entry> getAllCountryList() {
+		return arrayList;
+	}
+
+	void setAllCountryList(ArrayList<Entry> arrayList) {
+		this.arrayList = arrayList;
+	}
+
 }

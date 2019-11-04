@@ -1,5 +1,6 @@
 package com.example.downloadmaps;
 
+import android.app.FragmentManager;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -24,6 +25,8 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity implements IView {
 
 	static final long BYTE_IN_GIGABYTE = 0x40000000L;
+	static final String TAG_DATA = "data";
+	private RetainedFragment retainedFragment;
 	ProgressBar progressBar;
 	CountryListAdapter countryListAdapter;
 	ArrayList<DownloadMap> downloadMapTasks = new ArrayList<>();
@@ -71,7 +74,26 @@ public class MainActivity extends AppCompatActivity implements IView {
 		if (recyclerView.getItemAnimator() != null) {
 			((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
 		}
-    }
+
+		FragmentManager fm = getFragmentManager();
+		retainedFragment = (RetainedFragment) fm.findFragmentByTag(TAG_DATA);
+
+		if (retainedFragment == null) {
+			retainedFragment = new RetainedFragment();
+			fm.beginTransaction().add(retainedFragment, TAG_DATA).commit();
+			retainedFragment.setCountryList(regionParser.getAllCountryList());
+			retainedFragment.setBackStack(backStack);
+		} else {
+
+			regionParser.setAllCountryList(retainedFragment.getCountryList());
+			backStack = retainedFragment.getBackStack();
+			if (!backStack.isEmpty()) {
+				displayListHeader(backStack.peekFirst());
+			}
+			countryListAdapter.setItems(regionParser.getFilteredList(backStack.peekFirst()));
+			countryListAdapter.notifyDataSetChanged();
+		}
+	}
 
 	@Override
 	public boolean onSupportNavigateUp() {
@@ -82,31 +104,23 @@ public class MainActivity extends AppCompatActivity implements IView {
 	@Override
 	public void onBackPressed() {
 		if (!backStack.isEmpty()) {
-			Entry entry = backStack.pop();
-			if (entry.getRegion() != null) {
-				countryListAdapter.setItems(regionParser.getFilteredList(entry.getRegion()));
-				toolbar.setTitle(entry.getRegion().getName());
-				countryListAdapter.notifyDataSetChanged();
-				return;
-			} else {
-				countryListAdapter.setItems(regionParser.getFilteredList(null));
-				changeListHeader(getString(R.string.app_name), false, View.VISIBLE);
-				countryListAdapter.notifyDataSetChanged();
-				return;
-			}
+			backPressed(backStack.pop());
+			return;
 		}
 		super.onBackPressed();
 	}
 
-	@Override
-	public void subRegionClick(Entry entry) {
+	private void backPressed(Entry entry) {
+		countryListAdapter.setItems(regionParser.getFilteredList(entry.getRegion()));
+		countryListAdapter.notifyDataSetChanged();
+		displayListHeader(entry.getRegion());
+	}
+
+	private void displayListHeader(Entry entry) {
 		if (entry != null) {
-			if (regionParser.existSubRegion(entry)) {
-				countryListAdapter.setItems(regionParser.getFilteredList(entry));
-				changeListHeader(entry.getName(), true, View.GONE);
-				countryListAdapter.notifyDataSetChanged();
-				backStack.push(entry);
-			}
+			changeListHeader(entry.getName(), true, View.GONE);
+		} else {
+			changeListHeader(getString(R.string.app_name), false, View.VISIBLE);
 		}
 	}
 
@@ -118,6 +132,18 @@ public class MainActivity extends AppCompatActivity implements IView {
 		}
 		findViewById(R.id.llFreeMemory).setVisibility(visible);
 		findViewById(R.id.tvEurope).setVisibility(visible);
+	}
+
+	@Override
+	public void subRegionClick(Entry entry) {
+		if (entry != null) {
+			if (regionParser.existSubRegion(entry)) {
+				displayListHeader(entry);
+				countryListAdapter.setItems(regionParser.getFilteredList(entry));
+				countryListAdapter.notifyDataSetChanged();
+				backStack.push(entry);
+			}
+		}
 	}
 
 	@Override
@@ -168,5 +194,12 @@ public class MainActivity extends AppCompatActivity implements IView {
 	@Override
 	public void finishDownload(DownloadMap downloadMap) {
 		downloadMapTasks.remove(downloadMap);
+	}
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		retainedFragment.setCountryList(regionParser.getAllCountryList());
+		retainedFragment.setBackStack(backStack);
 	}
 }
