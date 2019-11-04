@@ -30,7 +30,6 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 		private TextView countryName;
 		private ProgressBar progressBar;
 		private ImageView download;
-		private ConstraintLayout clItemMain;
 		DownloadClickListener downloadClickListener;
 		ItemViewClickListener itemViewClickListener;
 
@@ -43,7 +42,7 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 			downloadClickListener = new DownloadClickListener();
 			download.setOnClickListener(downloadClickListener);
 
-			clItemMain = itemView.findViewById(R.id.clItemMain);
+			ConstraintLayout clItemMain = itemView.findViewById(R.id.clItemMain);
 			itemViewClickListener = new ItemViewClickListener();
 			clItemMain.setOnClickListener(itemViewClickListener);
 
@@ -126,19 +125,23 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 		if (entry.getDownloadProgress() == 100) {
 			Drawable normalDrawable = ContextCompat.getDrawable(viewHolder.map.getContext(),
 					R.drawable.ic_map);
-			Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
-			DrawableCompat.setTint(wrapDrawable,
-					viewHolder.map.getResources().getColor(R.color.colorDownloadedMapIcon));
-			viewHolder.map.setImageDrawable(wrapDrawable);
+			if (normalDrawable != null) {
+				Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
+				DrawableCompat.setTint(wrapDrawable,
+						viewHolder.map.getResources().getColor(R.color.colorDownloadedMapIcon));
+				viewHolder.map.setImageDrawable(wrapDrawable);
+			}
 			viewHolder.download.setImageDrawable(viewHolder.download.getResources()
 					.getDrawable(R.drawable.ic_action_remove_dark));
 		} else if (entry.getDownloadProgress() == 0 && !entry.isLoadWaiting()) {
 			Drawable normalDrawable = ContextCompat.getDrawable(viewHolder.map.getContext(),
 					R.drawable.ic_map);
-			Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
-			DrawableCompat.setTint(wrapDrawable,
-					viewHolder.map.getResources().getColor(R.color.colorIcon));
-			viewHolder.map.setImageDrawable(wrapDrawable);
+			if (normalDrawable != null) {
+				Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
+				DrawableCompat.setTint(wrapDrawable,
+						viewHolder.map.getResources().getColor(R.color.colorIcon));
+				viewHolder.map.setImageDrawable(wrapDrawable);
+			}
 			viewHolder.download.setImageDrawable(viewHolder.download.getResources()
 					.getDrawable(R.drawable.ic_action_import));
 		}

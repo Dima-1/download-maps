@@ -4,7 +4,7 @@ package com.example.downloadmaps;
  * Created by DR
  * on 01.11.2019.
  */
-public class Entry {
+class Entry {
 	private String name;
 	private String fileName;
 	private boolean loadWaiting;
@@ -26,11 +26,11 @@ public class Entry {
         this.region = region;
     }
 
-	public boolean isLoadWaiting() {
+	boolean isLoadWaiting() {
 		return loadWaiting;
     }
 
-	public void setLoadWaiting(boolean loadWaiting) {
+	void setLoadWaiting(boolean loadWaiting) {
 		this.loadWaiting = loadWaiting;
     }
 
@@ -38,7 +38,7 @@ public class Entry {
         return name;
     }
 
-    public void setName(String name) {
+	void setName(String name) {
         this.name = name;
     }
 
@@ -46,15 +46,11 @@ public class Entry {
 		return fileName;
     }
 
-	public void setFileName(String fileName) {
+	void setFileName(String fileName) {
 		this.fileName = fileName;
     }
 
-    public Entry getRegion() {
+	Entry getRegion() {
         return region;
-    }
-
-    public void setRegion(Entry region) {
-        this.region = region;
     }
 }

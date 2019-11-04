@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity implements IView {
 	LinkedList<Entry> backStack = new LinkedList<>();
 	RegionParser regionParser;
 	Toolbar toolbar;
-	private RecyclerView recyclerView;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,13 +53,13 @@ public class MainActivity extends AppCompatActivity implements IView {
 		int progress = (int) ((1 - freeMemoryF / totalMemoryF) * 100);
 		progressBar.setProgress(progress);
 
-		recyclerView = findViewById(R.id.countryList);
+		RecyclerView recyclerView = findViewById(R.id.countryList);
 		LinearLayoutManager layoutManager = new LinearLayoutManager(this);
 		recyclerView.setLayoutManager(layoutManager);
 		regionParser = new RegionParser();
-		InputStream XmlFileInputStream = getResources().openRawResource(R.raw.regions);
+		InputStream regions = getResources().openRawResource(R.raw.regions);
 		try {
-			countryList = regionParser.setInputStream(XmlFileInputStream);
+			countryList = regionParser.parseInputStream(regions);
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (XmlPullParserException e) {
@@ -69,7 +68,9 @@ public class MainActivity extends AppCompatActivity implements IView {
 		countryList = regionParser.getFilteredList(null);
 		countryListAdapter = new CountryListAdapter(this, countryList);
 		recyclerView.setAdapter(countryListAdapter);
-		((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
+		if (recyclerView.getItemAnimator() != null) {
+			((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
+		}
     }
 
 	@Override
@@ -89,11 +90,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 				return;
 			} else {
 				countryListAdapter.setItems(regionParser.getFilteredList(null));
-				toolbar.setTitle(getString(R.string.app_name));
-				getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-				getSupportActionBar().setDisplayShowHomeEnabled(false);
-				findViewById(R.id.llFreeMemory).setVisibility(View.VISIBLE);
-				findViewById(R.id.tvEurope).setVisibility(View.VISIBLE);
+				changeListHeader(getString(R.string.app_name), false, View.VISIBLE);
 				countryListAdapter.notifyDataSetChanged();
 				return;
 			}
@@ -106,15 +103,21 @@ public class MainActivity extends AppCompatActivity implements IView {
 		if (entry != null) {
 			if (regionParser.existSubRegion(entry)) {
 				countryListAdapter.setItems(regionParser.getFilteredList(entry));
-				toolbar.setTitle(entry.getName());
-				getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-				getSupportActionBar().setDisplayShowHomeEnabled(true);
-				findViewById(R.id.llFreeMemory).setVisibility(View.GONE);
-				findViewById(R.id.tvEurope).setVisibility(View.GONE);
+				changeListHeader(entry.getName(), true, View.GONE);
 				countryListAdapter.notifyDataSetChanged();
 				backStack.push(entry);
 			}
 		}
+	}
+
+	private void changeListHeader(String title, boolean visibleHomeButton, int visible) {
+		toolbar.setTitle(title);
+		if (getSupportActionBar() != null) {
+			getSupportActionBar().setDisplayHomeAsUpEnabled(visibleHomeButton);
+			getSupportActionBar().setDisplayShowHomeEnabled(visibleHomeButton);
+		}
+		findViewById(R.id.llFreeMemory).setVisibility(visible);
+		findViewById(R.id.tvEurope).setVisibility(visible);
 	}
 
 	@Override
