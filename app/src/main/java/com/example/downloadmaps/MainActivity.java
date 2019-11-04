@@ -170,8 +170,6 @@ public class MainActivity extends AppCompatActivity implements IView {
 
 	@Override
 	public void cancelDownloadMap(final Entry entry) {
-		entry.setLoadWaiting(false);
-		entry.setDownloadProgress(0);
 		final AlertDialog.Builder alertDialog;
 		alertDialog = new AlertDialog.Builder(MainActivity.this);
 		alertDialog.setTitle(R.string.cancel);
@@ -183,6 +181,8 @@ public class MainActivity extends AppCompatActivity implements IView {
 						dm.cancel(true);
 					}
 				}
+				entry.setLoadWaiting(false);
+				entry.setDownloadProgress(0);
 				Toast.makeText(getApplicationContext(), getString(R.string.cancelled),
 						Toast.LENGTH_LONG).show();
 				dialog.cancel();

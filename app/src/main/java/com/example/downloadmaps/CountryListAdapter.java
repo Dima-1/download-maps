@@ -109,11 +109,15 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 		viewHolder.countryName.setText(entry.getName());
 
 		if (0 < entry.getDownloadProgress() && entry.getDownloadProgress() < 100) {
+			if (viewHolder.progressBar.isIndeterminate())
+				viewHolder.progressBar.setIndeterminate(false);
 			entry.setLoadWaiting(false);
 			viewHolder.progressBar.setProgress(entry.getDownloadProgress());
 			setForCancel(viewHolder, false);
 		} else {
 			if (entry.isLoadWaiting()) {
+				if (!viewHolder.progressBar.isIndeterminate())
+					viewHolder.progressBar.setIndeterminate(true);
 				setForCancel(viewHolder, true);
 			} else {
 				viewHolder.progressBar.setVisibility(View.GONE);
@@ -153,8 +157,8 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 	}
 
 	private void setForCancel(@NonNull ItemViewHolder viewHolder, boolean indeterminate) {
-		viewHolder.progressBar.setIndeterminate(indeterminate);
-		viewHolder.progressBar.setVisibility(View.VISIBLE);
+		if (viewHolder.progressBar.getVisibility() != View.VISIBLE)
+			viewHolder.progressBar.setVisibility(View.VISIBLE);
 		viewHolder.download.setImageDrawable(viewHolder.download.getResources()
 				.getDrawable(R.drawable.ic_action_remove_dark));
 		viewHolder.downloadClickListener.setCancel(true);
