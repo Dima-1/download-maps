@@ -1,16 +1,20 @@
 package com.example.downloadmaps;
 
+import android.os.Environment;
 import android.util.Log;
 import android.util.Xml;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+
+import static com.example.downloadmaps.DownloadMap.MAP_FOLDER;
 
 class RegionParser {
 	private static final String TAG = "RegionParser";
@@ -80,6 +84,15 @@ class RegionParser {
 				e.setFileName(createMapFileName(e.getFileName()));
 			}
 			e.setName(createName(e.getName()));
+			markExistedFiles(e);
+		}
+	}
+
+	private void markExistedFiles(Entry e) {
+		if (!e.getFileName().isEmpty()) {
+			File file = new File(Environment.getExternalStorageDirectory()
+					+ File.separator + MAP_FOLDER + File.separator + e.getFileName());
+			e.setDownloadProgress(file.exists() ? 100 : 0);
 		}
 	}
 

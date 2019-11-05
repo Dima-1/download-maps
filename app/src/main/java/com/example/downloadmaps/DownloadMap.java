@@ -20,7 +20,7 @@ import java.net.URLConnection;
 
 class DownloadMap extends AsyncTask<Void, Integer, String> {
 	private static final String BASE_URL = "http://download.osmand.net/download.php?standard=yes&file=";
-	private static final String MAP_FOLDER = "maps";
+	static final String MAP_FOLDER = "maps";
 	private static final int INPUT_BUFFER_SIZE = 8192;
 	private IView view;
 
