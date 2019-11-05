@@ -142,8 +142,13 @@ class RegionParser {
 						&& !parser.getAttributeValue(null, "type").equals("map"))) {
 					entries.add(subRegion);
 				}
-				entries.addAll(readSubRegion(parser,
-						prefix + "_" + parser.getAttributeValue(null, "name"), subRegion));
+
+				ArrayList<Entry> subRegionEntries = readSubRegion(parser,
+						prefix + "_" + parser.getAttributeValue(null, "name"), subRegion);
+				if (subRegionEntries.isEmpty() && isAttrMapEqualsNo(parser)) {
+					entries.remove(subRegion);
+				}
+				entries.addAll(subRegionEntries);
 			}
 		}
 		return entries;
