@@ -57,7 +57,6 @@ class RegionParser {
 		}
 	}
 
-
 	private ArrayList<Entry> readFeed(XmlPullParser parser) throws IOException, XmlPullParserException {
 
 		ArrayList<Entry> entries = new ArrayList<>();
@@ -83,7 +82,6 @@ class RegionParser {
 			if (!e.getFileName().isEmpty()) {
 				e.setFileName(createMapFileName(e.getFileName()));
 			}
-			e.setName(createName(e.getName()));
 			markExistedFiles(e);
 		}
 	}
@@ -110,7 +108,7 @@ class RegionParser {
 					mapFileName = parser.getAttributeValue(null, "name");
 				}
 				Log.d(TAG, "readRegion: " + (parser.getAttributeValue(null, "name") + " - " + mapFileName));
-				Entry region = new Entry((parser.getAttributeValue(null, "name")), mapFileName, null);
+				Entry region = new Entry(createName(parser), mapFileName, null);
 				entries.add(region);
 				entries.addAll(readSubRegion(parser, parser.getAttributeValue(null, "name"), region));
 			}
@@ -137,7 +135,7 @@ class RegionParser {
 						+ " " + parser.getAttributeValue(null, "name")
 						+ " = " + mapFileName + " __^"
 						+ ((parent != null) ? parent.getName() : "--"));
-				Entry subRegion = new Entry(parser.getAttributeValue(null, "name"), mapFileName, parent);
+				Entry subRegion = new Entry(createName(parser), mapFileName, parent);
 				if (!(parser.getAttributeValue(null, "type") != null
 						&& !parser.getAttributeValue(null, "type").equals("map"))) {
 					entries.add(subRegion);
@@ -160,17 +158,26 @@ class RegionParser {
 	}
 
 	private String createMapFileName(String name) {
-			name = name.substring(0, 1).toUpperCase() + name.substring(1);
+	    name = name.substring(0, 1).toUpperCase() + name.substring(1);
 		return name + SUFFIX;
 	}
 
-	private String createName(String name) {
-		String[] splitName = name.split("-");
-		StringBuilder nameBuilder = new StringBuilder();
-		for (String n : splitName) {
-			nameBuilder.append(n.substring(0, 1).toUpperCase()).append(n.substring(1)).append(" ");
+	private String createName(XmlPullParser parser) {
+		String name = parser.getAttributeValue(null, "name");
+		String translate = parser.getAttributeValue(null, "translate");
+		if (translate != null) {
+			//check absent semicolon for non translated translation
+			int indexOfSemicolon = translate.contains(";") ? translate.indexOf(";") : translate.length();
+			name = translate.substring(0, indexOfSemicolon);
+			name = name.substring(name.contains("=") ? name.indexOf("=") + 1 : 0);
+		} else {
+			String[] splitName = name.split("-");
+			StringBuilder nameBuilder = new StringBuilder();
+			for (String n : splitName) {
+				nameBuilder.append(n.substring(0, 1).toUpperCase()).append(n.substring(1)).append(" ");
+			}
+			name = nameBuilder.toString().trim();
 		}
-		name = nameBuilder.toString().trim();
 		return name;
 	}
 
