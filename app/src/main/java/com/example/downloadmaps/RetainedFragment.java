@@ -14,7 +14,7 @@ import java.util.LinkedList;
 public class RetainedFragment extends Fragment {
 
 	private ArrayList<Entry> data;
-	private LinkedList<Entry> backStack;
+	private LinkedList<Entry.EntryWithOffset> backStack;
 	ArrayList<DownloadMap> downloadMapTasks;
 
 	@Override
@@ -31,11 +31,11 @@ public class RetainedFragment extends Fragment {
 		return data;
 	}
 
-	public LinkedList<Entry> getBackStack() {
+	public LinkedList<Entry.EntryWithOffset> getBackStack() {
 		return backStack;
 	}
 
-	public void setBackStack(LinkedList<Entry> backStack) {
+	public void setBackStack(LinkedList<Entry.EntryWithOffset> backStack) {
 		this.backStack = backStack;
 	}
 

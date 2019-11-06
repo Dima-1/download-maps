@@ -30,8 +30,10 @@ public class MainActivity extends AppCompatActivity implements IView {
 	Toolbar toolbar;
 	CountryListAdapter countryListAdapter;
 	ArrayList<DownloadMap> downloadMapTasks = new ArrayList<>();
-	LinkedList<Entry> backStack = new LinkedList<>();
+	LinkedList<Entry.EntryWithOffset> backStack = new LinkedList<>();
 	RegionParser regionParser;
+	private RecyclerView recyclerView;
+	private LinearLayoutManager layoutManager;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -54,8 +56,8 @@ public class MainActivity extends AppCompatActivity implements IView {
 		int progress = (int) ((1 - freeMemoryF / totalMemoryF) * 100);
 		progressBar.setProgress(progress);
 
-		RecyclerView recyclerView = findViewById(R.id.countryList);
-		LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+		recyclerView = findViewById(R.id.countryList);
+		layoutManager = new LinearLayoutManager(this);
 		recyclerView.setLayoutManager(layoutManager);
 		regionParser = new RegionParser();
 		InputStream regions = getResources().openRawResource(R.raw.regions);
@@ -88,9 +90,11 @@ public class MainActivity extends AppCompatActivity implements IView {
 				t.setView(this);
 			}
 			if (!backStack.isEmpty()) {
-				displayListHeader(backStack.peekFirst());
+				displayListHeader(backStack.peekFirst().entry);
+				countryListAdapter.setItems(regionParser.getFilteredList(backStack.peekFirst().entry));
+			}else {
+				countryListAdapter.setItems(regionParser.getFilteredList(null));
 			}
-			countryListAdapter.setItems(regionParser.getFilteredList(backStack.peekFirst()));
 			countryListAdapter.notifyDataSetChanged();
 		}
 		recyclerView.setAdapter(countryListAdapter);
@@ -117,10 +121,12 @@ public class MainActivity extends AppCompatActivity implements IView {
 		super.onBackPressed();
 	}
 
-	private void backPressed(Entry entry) {
+	private void backPressed(final Entry.EntryWithOffset entryWithOffset) {
+		Entry entry = entryWithOffset.entry;
 		countryListAdapter.setItems(regionParser.getFilteredList(entry.getRegion()));
 		countryListAdapter.notifyDataSetChanged();
 		displayListHeader(entry.getRegion());
+		layoutManager.scrollToPositionWithOffset(entryWithOffset.position, entryWithOffset.offset);
 	}
 
 	private void displayListHeader(Entry entry) {
@@ -145,10 +151,13 @@ public class MainActivity extends AppCompatActivity implements IView {
 	public void subRegionClick(Entry entry) {
 		if (entry != null) {
 			if (regionParser.existSubRegion(entry)) {
+				Entry.EntryWithOffset entryWithOffset
+						= new Entry.EntryWithOffset(entry,layoutManager.findFirstVisibleItemPosition(),
+						recyclerView.getChildAt(0).getTop());
 				displayListHeader(entry);
 				countryListAdapter.setItems(regionParser.getFilteredList(entry));
 				countryListAdapter.notifyDataSetChanged();
-				backStack.push(entry);
+				backStack.push(entryWithOffset);
 			}
 		}
 	}

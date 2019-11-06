@@ -53,4 +53,21 @@ class Entry {
 	Entry getRegion() {
         return region;
     }
+
+	/**
+	 * Created by DR
+	 * on 06.11.2019.
+	 */
+	static class EntryWithOffset {
+
+		Entry entry;
+		int position;
+		int offset;
+
+		EntryWithOffset(Entry entry, int position, int offset) {
+			this.entry = entry;
+			this.offset = offset;
+			this.position = position;
+		}
+	}
 }
