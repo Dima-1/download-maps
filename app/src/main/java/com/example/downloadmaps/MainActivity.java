@@ -60,15 +60,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 		layoutManager = new LinearLayoutManager(this);
 		recyclerView.setLayoutManager(layoutManager);
 		regionParser = new RegionParser();
-		InputStream regions = getResources().openRawResource(R.raw.regions);
-		try {
-			regionParser.parseInputStream(regions);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (XmlPullParserException e) {
-			e.printStackTrace();
-		}
-		countryListAdapter = new CountryListAdapter(this, regionParser.getFilteredList(null));
+		countryListAdapter = new CountryListAdapter(this);
 
 		if (recyclerView.getItemAnimator() != null) {
 			((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
@@ -78,11 +70,19 @@ public class MainActivity extends AppCompatActivity implements IView {
 		retainedFragment = (RetainedFragment) fm.findFragmentByTag(TAG_DATA);
 
 		if (retainedFragment == null) {
+			InputStream regions = getResources().openRawResource(R.raw.regions);
 			retainedFragment = new RetainedFragment();
 			fm.beginTransaction().add(retainedFragment, TAG_DATA).commit();
+			try {
+				regionParser.parseInputStream(regions);
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (XmlPullParserException e) {
+				e.printStackTrace();
+			}
+			countryListAdapter.setItems(regionParser.getFilteredList(null));
 			saveInRetainedFragment();
 		} else {
-
 			regionParser.setAllCountryList(retainedFragment.getCountryList());
 			backStack = retainedFragment.getBackStack();
 			downloadMapTasks = retainedFragment.getDownloadTaskList();

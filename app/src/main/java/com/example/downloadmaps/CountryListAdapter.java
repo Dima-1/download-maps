@@ -47,8 +47,10 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 			clItemMain.setOnClickListener(itemViewClickListener);
 
 			progressBar = itemView.findViewById(R.id.progressBarMap);
-			progressBar.getIndeterminateDrawable().setColorFilter(itemView.getResources().getColor(R.color.colorProgress), PorterDuff.Mode.SRC_IN);
-			progressBar.getProgressDrawable().setColorFilter(itemView.getResources().getColor(R.color.colorProgress), PorterDuff.Mode.SRC_IN);
+			progressBar.getIndeterminateDrawable().setColorFilter(itemView.getResources()
+					.getColor(R.color.colorProgress), PorterDuff.Mode.SRC_IN);
+			progressBar.getProgressDrawable().setColorFilter(itemView.getResources()
+					.getColor(R.color.colorProgress), PorterDuff.Mode.SRC_IN);
 		}
 	}
 
@@ -87,9 +89,8 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 		}
 	}
 
-	CountryListAdapter(IView view, ArrayList<Entry> countryList) {
+	CountryListAdapter(IView view) {
 
-		this.countryList = countryList;
 		this.view = view;
 	}
 
@@ -113,12 +114,12 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 				viewHolder.progressBar.setIndeterminate(false);
 			entry.setLoadWaiting(false);
 			viewHolder.progressBar.setProgress(entry.getDownloadProgress());
-			setForCancel(viewHolder, false);
+			setForCancel(viewHolder);
 		} else {
 			if (entry.isLoadWaiting()) {
 				if (!viewHolder.progressBar.isIndeterminate())
 					viewHolder.progressBar.setIndeterminate(true);
-				setForCancel(viewHolder, true);
+				setForCancel(viewHolder);
 			} else {
 				viewHolder.progressBar.setVisibility(View.GONE);
 				viewHolder.downloadClickListener.setCancel(false);
@@ -156,7 +157,7 @@ class CountryListAdapter extends RecyclerView.Adapter<CountryListAdapter.ItemVie
 		}
 	}
 
-	private void setForCancel(@NonNull ItemViewHolder viewHolder, boolean indeterminate) {
+	private void setForCancel(@NonNull ItemViewHolder viewHolder) {
 		if (viewHolder.progressBar.getVisibility() != View.VISIBLE)
 			viewHolder.progressBar.setVisibility(View.VISIBLE);
 		viewHolder.download.setImageDrawable(viewHolder.download.getResources()
