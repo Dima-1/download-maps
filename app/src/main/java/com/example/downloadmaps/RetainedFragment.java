@@ -1,7 +1,7 @@
 package com.example.downloadmaps;
 
-import android.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -14,8 +14,8 @@ import java.util.LinkedList;
 public class RetainedFragment extends Fragment {
 
 	private ArrayList<Entry> data;
-	private LinkedList<Entry.EntryWithOffset> backStack;
-	ArrayList<DownloadMap> downloadMapTasks;
+	private LinkedList<Entry.EntryWithOffset> backStack = new LinkedList<>();
+	ArrayList<DownloadMap> downloadMapTasks = new ArrayList<>();
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {

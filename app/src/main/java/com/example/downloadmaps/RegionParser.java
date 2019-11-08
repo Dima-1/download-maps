@@ -22,8 +22,14 @@ class RegionParser {
 	private static final String SUFFIX = "_europe_2.obf.zip";
 	private ArrayList<Entry> arrayList = new ArrayList<>();
 
-	ArrayList<Entry> parseInputStream(InputStream xmlFileInputStream) throws IOException, XmlPullParserException {
-		return parse(xmlFileInputStream);
+	void parseXML(InputStream xmlFileInputStream) {
+		try {
+			parse(xmlFileInputStream);
+		} catch (XmlPullParserException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	ArrayList<Entry> getFilteredList(Entry parent) {

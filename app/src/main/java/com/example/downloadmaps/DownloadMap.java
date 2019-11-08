@@ -38,6 +38,10 @@ class DownloadMap extends AsyncTask<Void, Integer, String> {
 		this.view = view;
 	}
 
+	Entry getEntry() {
+		return entry;
+	}
+
 	String getFileName() {
 		return fileName;
 	}

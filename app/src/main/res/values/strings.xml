@@ -12,4 +12,5 @@
     <string name="cancelled">Cancelled</string>
     <string name="europe">Europe</string>
     <string name="download_maps">Download Maps</string>
+    <string name="please_grant_write_permission">Please grant permission for save map file</string>
 </resources>

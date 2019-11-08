@@ -1,8 +1,13 @@
 package com.example.downloadmaps;
 
-import android.app.FragmentManager;
+import android.Manifest;
 import android.content.DialogInterface;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -14,10 +19,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.xmlpull.v1.XmlPullParserException;
-
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 
 	static final long BYTE_IN_GIGABYTE = 0x40000000L;
 	static final String TAG_DATA = "data";
+	private static final int MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE = 201;
 	private RetainedFragment retainedFragment;
 	Toolbar toolbar;
 	CountryListAdapter countryListAdapter;
@@ -65,24 +67,27 @@ public class MainActivity extends AppCompatActivity implements IView {
 		if (recyclerView.getItemAnimator() != null) {
 			((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
 		}
-
-		FragmentManager fm = getFragmentManager();
+		FragmentManager fm;
+		fm = getSupportFragmentManager();
 		retainedFragment = (RetainedFragment) fm.findFragmentByTag(TAG_DATA);
-
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		if (retainedFragment == null) {
-			InputStream regions = getResources().openRawResource(R.raw.regions);
+
 			retainedFragment = new RetainedFragment();
 			fm.beginTransaction().add(retainedFragment, TAG_DATA).commit();
-			try {
-				regionParser.parseInputStream(regions);
-			} catch (IOException e) {
-				e.printStackTrace();
-			} catch (XmlPullParserException e) {
-				e.printStackTrace();
-			}
+			regionParser.parseXML(getResources().openRawResource(R.raw.regions));
 			countryListAdapter.setItems(regionParser.getFilteredList(null));
 			saveInRetainedFragment();
 		} else {
+			if (retainedFragment.getCountryList() == null) {
+				// rerun parser if user revoked permission through OS settings
+				regionParser.parseXML(getResources().openRawResource(R.raw.regions));
+				retainedFragment.setCountryList(regionParser.getAllCountryList());
+			}
 			regionParser.setAllCountryList(retainedFragment.getCountryList());
 			backStack = retainedFragment.getBackStack();
 			downloadMapTasks = retainedFragment.getDownloadTaskList();
@@ -164,12 +169,37 @@ public class MainActivity extends AppCompatActivity implements IView {
 
 	@Override
 	public void downloadMap(Entry entry) {
-		entry.setLoadWaiting(true);
-		Toast.makeText(this, entry.getFileName(), Toast.LENGTH_SHORT).show();
 		DownloadMap downloadMap = new DownloadMap(this, entry);
 		downloadMapTasks.add(downloadMap);
-		downloadMap.execute();
-		countryListAdapter.notifyDataSetChanged();
+		if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+				!= PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this,
+					new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+					MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE);
+		} else {
+			entry.setLoadWaiting(true);
+			Toast.makeText(this, entry.getFileName(), Toast.LENGTH_SHORT).show();
+			downloadMap.execute();
+			countryListAdapter.notifyDataSetChanged();
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		if (requestCode == MY_PERMISSIONS_WRITE_EXTERNAL_STORAGE) {
+			if (grantResults.length > 0
+					&& grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+				int lastTask = downloadMapTasks.size() - 1;
+				if (lastTask >= 0) {
+					Entry entry = downloadMapTasks.get(lastTask).getEntry();
+					downloadMapTasks.remove(lastTask);
+					downloadMap(entry);
+				}
+			} else {
+				Toast.makeText(this, getString(R.string.please_grant_write_permission), Toast.LENGTH_SHORT).show();
+			}
+		}
 	}
 
 	@Override
@@ -185,13 +215,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 		alertDialog.setMessage(R.string.cancel_file_download);
 		alertDialog.setPositiveButton(R.string.yes, new DialogInterface.OnClickListener() {
 			public void onClick(DialogInterface dialog, int arg1) {
-				for (DownloadMap dm : downloadMapTasks) {
-					if (dm.getFileName().equals(entry.getFileName())) {
-						dm.cancel(true);
-					}
-				}
-				entry.setLoadWaiting(false);
-				entry.setDownloadProgress(0);
+				cancelDownloadTask(entry);
 				Toast.makeText(getApplicationContext(), getString(R.string.cancelled),
 						Toast.LENGTH_LONG).show();
 				dialog.cancel();
@@ -204,6 +228,16 @@ public class MainActivity extends AppCompatActivity implements IView {
 		});
 		alertDialog.setCancelable(true);
 		alertDialog.show();
+	}
+
+	private void cancelDownloadTask(Entry entry) {
+		for (DownloadMap dm : downloadMapTasks) {
+			if (dm.getFileName().equals(entry.getFileName())) {
+				dm.cancel(true);
+			}
+		}
+		entry.setLoadWaiting(false);
+		entry.setDownloadProgress(0);
 		countryListAdapter.notifyDataSetChanged();
 	}
 
