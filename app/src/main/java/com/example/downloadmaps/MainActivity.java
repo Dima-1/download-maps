@@ -70,11 +70,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 		FragmentManager fm;
 		fm = getSupportFragmentManager();
 		retainedFragment = (RetainedFragment) fm.findFragmentByTag(TAG_DATA);
-		try {
-			Thread.sleep(5000);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+
 		if (retainedFragment == null) {
 
 			retainedFragment = new RetainedFragment();
