@@ -15,7 +15,16 @@ public class RetainedFragment extends Fragment {
 
 	private ArrayList<Entry> data;
 	private LinkedList<Entry.EntryWithOffset> backStack = new LinkedList<>();
-	ArrayList<DownloadMap> downloadMapTasks = new ArrayList<>();
+	private ArrayList<DownloadMap> downloadMapTasks = new ArrayList<>();
+	private RegionParser regionParser;
+
+	public RegionParser getRegionParser() {
+		return regionParser;
+	}
+
+	public void setRegionParser(RegionParser regionParser) {
+		this.regionParser = regionParser;
+	}
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {

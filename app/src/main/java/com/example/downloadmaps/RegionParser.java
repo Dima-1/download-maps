@@ -1,5 +1,6 @@
 package com.example.downloadmaps;
 
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.util.Log;
 import android.util.Xml;
@@ -16,20 +17,19 @@ import java.util.Comparator;
 
 import static com.example.downloadmaps.DownloadMap.MAP_FOLDER;
 
-class RegionParser {
+class RegionParser extends AsyncTask<InputStream, Void, ArrayList> {
 	private static final String TAG = "RegionParser";
 	private static final String ns = null;
 	private static final String SUFFIX = "_europe_2.obf.zip";
 	private ArrayList<Entry> arrayList = new ArrayList<>();
+	private IView view;
 
-	void parseXML(InputStream xmlFileInputStream) {
-		try {
-			parse(xmlFileInputStream);
-		} catch (XmlPullParserException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	RegionParser(IView view) {
+		this.view = view;
+	}
+
+	void setView(IView view) {
+		this.view = view;
 	}
 
 	ArrayList<Entry> getFilteredList(Entry parent) {
@@ -202,4 +202,22 @@ class RegionParser {
 		this.arrayList = arrayList;
 	}
 
+	@Override
+	protected ArrayList<Entry> doInBackground(InputStream[] input) {
+
+		try {
+			return parse(input[0]);
+		} catch (XmlPullParserException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	@Override
+	protected void onPostExecute(ArrayList arrayList) {
+		super.onPostExecute(arrayList);
+		view.parsingFinished();
+	}
 }

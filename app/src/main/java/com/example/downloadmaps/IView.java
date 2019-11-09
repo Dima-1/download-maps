@@ -11,4 +11,6 @@ public interface IView {
 	void finishDownload(DownloadMap downloadMap);
 
 	void subRegionClick(Entry entry);
+
+	void parsingFinished();
 }

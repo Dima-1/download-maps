@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements IView {
 	RegionParser regionParser;
 	private RecyclerView recyclerView;
 	private LinearLayoutManager layoutManager;
+	private FragmentManager fm;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -61,47 +62,31 @@ public class MainActivity extends AppCompatActivity implements IView {
 		recyclerView = findViewById(R.id.countryList);
 		layoutManager = new LinearLayoutManager(this);
 		recyclerView.setLayoutManager(layoutManager);
-		regionParser = new RegionParser();
+
 		countryListAdapter = new CountryListAdapter(this);
 
 		if (recyclerView.getItemAnimator() != null) {
 			((SimpleItemAnimator) recyclerView.getItemAnimator()).setSupportsChangeAnimations(false);
 		}
-		FragmentManager fm;
 		fm = getSupportFragmentManager();
 		retainedFragment = (RetainedFragment) fm.findFragmentByTag(TAG_DATA);
 
 		if (retainedFragment == null) {
+			regionParser = new RegionParser(this);
+			regionParser.execute(getResources().openRawResource(R.raw.regions));
 
-			retainedFragment = new RetainedFragment();
-			fm.beginTransaction().add(retainedFragment, TAG_DATA).commit();
-			regionParser.parseXML(getResources().openRawResource(R.raw.regions));
-			countryListAdapter.setItems(regionParser.getFilteredList(null));
-			saveInRetainedFragment();
 		} else {
 			if (retainedFragment.getCountryList() == null) {
 				// rerun parser if user revoked permission through OS settings
-				regionParser.parseXML(getResources().openRawResource(R.raw.regions));
-				retainedFragment.setCountryList(regionParser.getAllCountryList());
+				regionParser = new RegionParser(this);
+				regionParser.execute(getResources().openRawResource(R.raw.regions));
 			}
-			regionParser.setAllCountryList(retainedFragment.getCountryList());
-			backStack = retainedFragment.getBackStack();
-			downloadMapTasks = retainedFragment.getDownloadTaskList();
-			for (DownloadMap t : downloadMapTasks) {
-				t.setView(this);
-			}
-			if (!backStack.isEmpty()) {
-				displayListHeader(backStack.peekFirst().entry);
-				countryListAdapter.setItems(regionParser.getFilteredList(backStack.peekFirst().entry));
-			}else {
-				countryListAdapter.setItems(regionParser.getFilteredList(null));
-			}
-			countryListAdapter.notifyDataSetChanged();
+			parsingFinished();
 		}
-		recyclerView.setAdapter(countryListAdapter);
 	}
 
 	private void saveInRetainedFragment() {
+		retainedFragment.setRegionParser(regionParser);
 		retainedFragment.setDownloadTaskList(downloadMapTasks);
 		retainedFragment.setCountryList(regionParser.getAllCountryList());
 		retainedFragment.setBackStack(backStack);
@@ -161,6 +146,36 @@ public class MainActivity extends AppCompatActivity implements IView {
 				backStack.push(entryWithOffset);
 			}
 		}
+	}
+
+	@Override
+	public void parsingFinished() {
+		if (retainedFragment == null) {
+
+			retainedFragment = new RetainedFragment();
+			fm.beginTransaction().add(retainedFragment, TAG_DATA).commit();
+			countryListAdapter.setItems(regionParser.getFilteredList(null));
+		} else {
+			if (retainedFragment.getCountryList() == null) {
+				retainedFragment.setCountryList(regionParser.getAllCountryList());
+			}
+			regionParser = retainedFragment.getRegionParser();
+			regionParser.setView(this);
+			regionParser.setAllCountryList(retainedFragment.getCountryList());
+			backStack = retainedFragment.getBackStack();
+			downloadMapTasks = retainedFragment.getDownloadTaskList();
+			for (DownloadMap t : downloadMapTasks) {
+				t.setView(this);
+			}
+			if (!backStack.isEmpty()) {
+				displayListHeader(backStack.peekFirst().entry);
+				countryListAdapter.setItems(regionParser.getFilteredList(backStack.peekFirst().entry));
+			} else {
+				countryListAdapter.setItems(regionParser.getFilteredList(null));
+			}
+			countryListAdapter.notifyDataSetChanged();
+		}
+		recyclerView.setAdapter(countryListAdapter);
 	}
 
 	@Override
